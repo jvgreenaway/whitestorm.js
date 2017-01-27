@@ -1,6 +1,6 @@
 import * as UTILS from '../../globals';
 
-const mouse = new WHS.app.VirtualMouseModule(world);
+const mouse = new WHS.app.VirtualMouseModule();
 
 const world = new WHS.App([
   new WHS.app.ElementModule(),
@@ -31,7 +31,7 @@ const world = new WHS.App([
 
 
 // Create all sides of the box
-function makeBoxWall(attrs = {}, size = 100) {
+function boxWall(attrs = {}, size = 100) {
   return new WHS.Box({
     ...attrs,
 
@@ -42,19 +42,23 @@ function makeBoxWall(attrs = {}, size = 100) {
     },
 
     shadow: {
-      cast: false
+      cast: false,
+      receive: false
     },
 
     modules: [
       new PHYSICS.BoxModule({
         mass: 100,
-        restitution: 0,
-        friction: 0
       })
-    ]
+    ],
+
+    material: new THREE.MeshNormalMaterial({
+      shading: THREE.FlatShading,
+      transparent: true,
+      opacity: 0.5
+    }),
   });
 }
-
 
 // Create wireframe box
 const box = new WHS.Box({
@@ -65,7 +69,8 @@ const box = new WHS.Box({
   },
 
   shadow: {
-    cast: false
+    cast: false,
+    receive: false,
   },
 
   modules: [
@@ -74,100 +79,79 @@ const box = new WHS.Box({
     })
   ],
 
-  material: new THREE.MeshPhongMaterial({
-    color: 0xFFFFFF,
-    transparent: true,
-    opacity: 0.5
-  }),
-
   position: [0, 0, 0],
   rotation: [0, Math.PI, 0]
 }).defer(box => {
+
+  const makeBoxWall = (...params) => boxWall(...params).addTo(box);
+
   makeBoxWall({
     position: [0, 0, 50]
-  }).addTo(box);
+  });
 
   makeBoxWall({
     position: [0, 0, -50]
-  }).addTo(box);
+  });
 
   makeBoxWall({
     rotation: {x: -Math.PI / 2},
     position: [0, 50, 0]
-  }).addTo(box);
+  });
 
   makeBoxWall({
     rotation: {x: -Math.PI / 2},
     position: [0, -50, 0]
-  }).addTo(box);
+  });
 
   makeBoxWall({
     rotation: {y: -Math.PI / 2},
     position: [50, 0, 0]
-  }).addTo(box);
+  });
 
   makeBoxWall({
     rotation: {y: -Math.PI / 2},
     position: [-50, 0, 0]
-  }).addTo(box);
+  });
 
   box.addTo(world).then(() => {
+    mouse.track(box);
+
     box.setLinearFactor(new THREE.Vector3(0, 0, 0));
     box.setAngularFactor(new THREE.Vector3(0, 0, 0));
 
-    function state0() {
-      box.material = new THREE.MeshPhongMaterial({
-        color: 0xf4ee42,
-        transparent: true,
-        opacity: 0.125
-      })
+    const states = [];
+
+    states.push(() => {
+      // down
       world.setGravity(new THREE.Vector3(0, -200, 0));
-    }
-
-    function state1() {
-      box.material = new THREE.MeshPhongMaterial({
-        color: 0xdc42f4,
-        transparent: true,
-        opacity: 0.125
-      })
-      world.setGravity(new THREE.Vector3(0, 200, 0));
-    }
-
-    function state2() {
-      box.material = new THREE.MeshPhongMaterial({
-        color: 0x65f442,
-        transparent: true,
-        opacity: 0.125
-      })
-      world.setGravity(new THREE.Vector3(200, 0, 0));
-    }
-
-    function state3() {
-      box.material = new THREE.MeshPhongMaterial({
-        color: 0xf4426e,
-        transparent: true,
-        opacity: 0.125
-      })
-      world.setGravity(new THREE.Vector3(-200, 0, 0));
-    }
-
-    state0();
-
-    let state = 0
-
-    mouse.track(box);
-
-    box.on('click', () => {
-      state++;
-      if (state >= 4) state = 0;
-
-      switch(state) {
-        case 0: state0(); break;
-        case 1: state1(); break;
-        case 2: state2(); break;
-        case 3: state3(); break;
-      }
     })
+
+    states.push(() => {
+      // left
+      world.setGravity(new THREE.Vector3(-200, 0, 0));
+    })
+
+    states.push(() => {
+      // up
+      world.setGravity(new THREE.Vector3(0, 200, 0));
+    })
+
+    states.push(() => {
+      // right
+      world.setGravity(new THREE.Vector3(200, 0, 0));
+    })
+
+    let currentState = 0;
+    states[currentState]();
+
+    const cycleStates = () => {
+      currentState++;
+      if (currentState >= states.length) currentState = 0;
+      states[currentState]();
+    }
+
+    // Click box to change state
+    box.on('click', cycleStates)
 
     // Move box with mouse
     mouse.on('move', () => {
@@ -182,7 +166,7 @@ const box = new WHS.Box({
 // Create a ball
 new WHS.Icosahedron({
   geometry: {
-    radius: 20,
+    radius: 30,
     detail: 2
   },
 
@@ -190,7 +174,7 @@ new WHS.Icosahedron({
     new PHYSICS.ConvexModule({
       mass: 10,
       restitution: 3,
-      friction: 2
+      friction: 1
     }),
     // new PHYSICS.SoftbodyModule({
     //   mass: 10000,
@@ -213,15 +197,14 @@ new WHS.Icosahedron({
   ball.addTo(world);
 });
 
-
 new WHS.PointLight({
   light: {
     intensity: 1,
-    distance: 500
+    distance: 1000
   },
 
   shadow: {
-    fov: 100
+    fov: 500
   },
 
   position: [10, 10, 100]
@@ -233,6 +216,5 @@ new WHS.AmbientLight({
     intensity: 0.5
   }
 }).addTo(world);
-
 
 world.start();
