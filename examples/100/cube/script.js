@@ -21,7 +21,7 @@ const world = new WHS.App([
   }),
   new PHYSICS.WorldModule({
     ammo: process.ammoPath,
-    gravity: new THREE.Vector3(0, -100, 0),
+    gravity: new THREE.Vector3(0, -200, 0),
     softbody: true,
   }),
   new WHS.controls.OrbitModule(),
@@ -155,6 +155,8 @@ const box = new WHS.Box({
 
     let state = 0
 
+    mouse.track(box);
+
     box.on('click', () => {
       state++;
       if (state >= 4) state = 0;
@@ -187,7 +189,7 @@ new WHS.Icosahedron({
   modules: [
     new PHYSICS.ConvexModule({
       mass: 10,
-      restitution: 2,
+      restitution: 3,
       friction: 2
     }),
     // new PHYSICS.SoftbodyModule({
