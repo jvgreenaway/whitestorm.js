@@ -1,7 +1,9 @@
 import {Vector3} from 'three';
+
+import {Loop} from '../../core/Loop';
 import {ThreeOrbitControls} from './lib/ThreeOrbitControls';
 
-export class OrbitControlsModule {
+export class OrbitModule {
   constructor(params = {}) {
     this.params = Object.assign({
       target: new Vector3(0, 0, 0),
@@ -15,15 +17,15 @@ export class OrbitControlsModule {
       manager.get('renderer').domElement
     );
 
-    manager.onDependencyUpdate({
+    manager.update({
       camera: (camera) => {
         this.controls.object = camera.native;
       }
     });
   }
 
-  integrate(params, self) {
-    const controls = self.controls;
+  integrate(self) {
+    const {params, controls} = self;
 
     const updateProcessor = params.follow ? (c) => {
       controls.update(c.getDelta());
@@ -32,7 +34,7 @@ export class OrbitControlsModule {
       controls.update(c.getDelta());
     };
 
-    self.updateLoop = new WHS.Loop(updateProcessor).start(this);
+    self.updateLoop = new Loop(updateProcessor).start(this);
 
     controls.target.copy(params.target);
   }

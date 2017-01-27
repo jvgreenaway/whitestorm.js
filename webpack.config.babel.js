@@ -4,21 +4,30 @@ import HappyPack from 'happypack';
 
 process.env.BABEL_ENV = 'browser';
 
-export function config({isProduction, src, dest, filename = 'whitestorm.js', plugins = []}) {
+export function config(
+    {
+      isProduction,
+      src,
+      dest,
+      filename = 'whitestorm.js',
+      plugins = [],
+      compact = false
+    }
+) {
   if (process.env.CI) isProduction = true;
   console.log(isProduction ? 'Production mode' : 'Development mode');
 
   const version = require('./package.json').version;
   console.log(version);
 
-  const bannerText = `WhitestormJS Framework v${version}`;
+  const bannerText = `WhitestormJS Framework v${version}${compact ? ' compact' : ''}`;
 
   return { // PHYSICS VERSION
     devtool: isProduction ? false : 'source-map',
     cache: true,
     entry: [
       // 'babel-polyfill',
-      `${src}/index.js`
+      compact ? `${src}/compact.js` : `${src}/index.js`
     ],
     target: 'web',
     output: {
@@ -28,7 +37,7 @@ export function config({isProduction, src, dest, filename = 'whitestorm.js', plu
       libraryTarget: 'umd'
     },
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.js$/,
           exclude: [
@@ -36,40 +45,49 @@ export function config({isProduction, src, dest, filename = 'whitestorm.js', plu
           ],
           loader: 'babel-loader', // babel-loader
           query: {
-            cacheDirectory: true,
-            plugins: [
-              ['transform-runtime', {polyfill: false}],
-              'add-module-exports',
-              'transform-decorators-legacy',
-              'transform-class-properties',
-              'transform-object-rest-spread'
-            ],
-            presets: [['es2015', {modules: false}]]
+            cacheDirectory: true
           }
         }
       ]
     },
-    plugins: isProduction ?
-      [
+    plugins: [
+      new webpack.LoaderOptionsPlugin({
+        minimize: isProduction,
+        debug: !isProduction
+      }),
+      ...(isProduction ? [
         new webpack.optimize.UglifyJsPlugin({
           compress: {
-            hoist_funs: false, // Turn this off to prevent errors with Ammo.js
             warnings: false,
-            dead_code: true
+            screw_ie8: true,
+            conditionals: true,
+            unused: true,
+            comparisons: true,
+            sequences: true,
+            dead_code: true,
+            evaluate: true,
+            if_return: true,
+            join_vars: true
           },
-          minimize: true
-        }),
-        new HappyPack({loaders: ['babel'], threads: 4}),
-        new webpack.NormalModuleReplacementPlugin(/inline\-worker/, 'webworkify-webpack'),
-        new webpack.BannerPlugin(bannerText),
-        ...plugins
-      ]
-      : [
-        new HappyPack({loaders: ['babel'], threads: 4}),
-        new webpack.NormalModuleReplacementPlugin(/inline\-worker/, 'webworkify-webpack'),
-        new webpack.BannerPlugin(bannerText),
-        ...plugins
-      ]
+
+          output: {
+            comments: false
+          }
+        })
+      ] : []),
+      new HappyPack({loaders: ['babel-loader'], threads: 4}),
+      new webpack.BannerPlugin(bannerText),
+      ...plugins
+    ],
+    resolve: {
+      modules: [
+        path.resolve(__dirname, 'node_modules'),
+        src
+      ],
+      alias: {
+        three$: path.join(__dirname, './node_modules/three/build/three.module.js')
+      }
+    }
   };
 }
 

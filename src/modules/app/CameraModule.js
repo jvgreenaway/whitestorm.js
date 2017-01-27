@@ -30,11 +30,11 @@ export class CameraModule {
     });
   }
 
-  integrate(params, self) {
+  integrate(self) {
     this.add(self.camera);
   }
 
   manager(manager) {
-    manager.addDependency('camera', this.camera, {alias: '$camera'});
+    manager.add('camera', this.camera, {alias: '$camera'});
   }
 }

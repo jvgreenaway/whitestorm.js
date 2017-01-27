@@ -1,16 +1,8 @@
-import Events from 'minivents';
-
 import {extend, transformData} from '../utils/index';
+import {ModuleSystem} from './ModuleSystem';
 import {ModuleManager} from './ModuleManager';
-import {ManagerError} from './errors';
 
-export const getWorld = (element) => {
-  let world = element;
-  if (!world.$scene) while (!world.$scene) world = world.parent;
-  return world;
-};
-
-class Component extends Events {
+class Component extends ModuleSystem {
   static defaults = {
     modules: [],
     manager: true
@@ -18,42 +10,94 @@ class Component extends Events {
 
   static instructions = {};
 
-  _wait = [];
-  children = [];
-  modules = [];
-  params = {};
+  _wait = []; // Collection of promises;
+  modules = []; // Collection of modules;
+  children = []; // For keeping children components;
 
-  constructor(obj = {}, defaults = Component.defaults, instructions = Component.instructions) {
+  constructor(params = {}, defaults = Component.defaults, instructions = Component.instructions) {
     super();
 
-    this.params = extend(transformData(obj, instructions), defaults);
+    // Apply polyfilled parameters to .params;
+    this.params = extend(transformData(params, instructions), defaults);
     if (this.params.manager) this.manager = new ModuleManager();
 
-    this.modules = this.params.modules || [];
-    const modules = this.modules;
+    this.modules = this.params.modules;
 
-    for (let i = 0, max = modules.length; i < max; i++) {
-      const module = modules[i];
-
-      if (typeof module === 'function')
-        module.bind(this)();
-      else {
-        if (!module.name) module.name = '';
-        if (this.manager) this.manager.setActiveModule(module);
-
-        if (module.manager && this.manager) module.manager(this.manager);
-        else if (module.manager) {
-          throw new ManagerError(
-            'Component',
-            `Module requires ModuleManager that is turned off for this component`,
-            this, module
-          );
-        }
-
-        if (module.integrate) module.integrate.bind(this)(module.params, module);
-      }
-    }
+    this.integrateModules();
   }
+
+  // PROMISES (Asynchronous code)
+
+  // FIXME: possible use of Promise.all(this._wait) only in .defer();
+  wait(promise) {
+    if (promise) this._wait.push(promise);
+    return Promise.all(this._wait);
+  }
+
+  defer(func) {
+    if (this.isDeffered) this.wait().then(() => func(this));
+    else func(this);
+  }
+
+  // PARAMETERS
+
+  updateParams(params = {}) {
+    this.params = extend(params, this.params);
+    return this.params;
+  }
+
+  // COPYING & CLONING
+
+  clone() {
+    return new this.constructor(this.params).copy(this);
+  }
+
+  copy(source, customize) {
+    this.params = {...source.params};
+
+    if (source.native) this.native = source.native.clone(source.params);
+    if (customize) customize();
+    this.integrateModules(source);
+
+    return this;
+  }
+
+  // ADD
+
+  add(object) {
+    object.parent = this;
+
+    return new Promise((resolve, reject) => {
+      this.defer(() => {
+        const {native} = object;
+        if (!native) reject();
+
+        const addPromise = this.applyBridge({onAdd: object}).onAdd;
+
+        const resolver = () => {
+          this.native.add(native);
+          this.children.push(object);
+
+          resolve(object);
+        };
+
+        if (addPromise instanceof Promise) addPromise.then(resolver);
+        else resolver();
+      });
+    });
+  }
+
+  addTo(object) {
+    return object.add(this);
+  }
+
+  // GETTERS & SETTERS
+
+  get isDeffered() {
+    return this._wait.length > 0;
+  }
+
+  // .manager
 
   get manager() {
     if (this._manager) return this._manager;
@@ -69,54 +113,7 @@ class Component extends Events {
     this._manager = manager;
   }
 
-  wait(promise) {
-    if (promise) this._wait.push(promise);
-    return Promise.all(this._wait);
-  }
-
-  defer(func) {
-    if (this.isDeffered) this.wait().then(() => func(this));
-    else func(this);
-  }
-
-  get isDeffered() {
-    return this._wait.length > 0;
-  }
-
-  updateParams(params = {}) {
-    this.params = extend(params, this.params);
-    return this.params;
-  }
-
-  clone() {
-    return new this.constructor(this.params).copy(this);
-  }
-
-  copy(source) {
-    if (source.native) {
-      this.native = source.native.clone(source.params);
-      this.params = {...source.params};
-    } else this.params = source.params;
-
-    return this;
-  }
-
-  applyBridge(bridgeMap = {}) {
-    const modules = this.modules;
-
-    for (let i = 0, max = modules.length; i < max; i++) {
-      for (const key in bridgeMap) {
-        if (bridgeMap[key]) {
-          const module = modules[i];
-
-          if (module.bridge && module.bridge[key])
-            bridgeMap[key] = module.bridge[key].apply(this, [bridgeMap[key], module]);
-        }
-      }
-    }
-
-    return bridgeMap;
-  }
+  // .native
 
   get native() {
     return this._native;

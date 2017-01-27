@@ -1,11 +1,21 @@
 import test from 'ava';
 import * as WHS from '../../build/whitestorm.js';
 
+/*
+ * Ignored methods:
+ *
+ * - .addLoop() & .removeLoop() - Used in Loop tests;
+ * - .modules() - Piped version of .applyModule();
+ * - .add() - Component-specific method that relies on .native;
+ *
+ */
+
 const app = new WHS.App();
 
 test('.start()', t => {
-  app.start();
-  t.pass();
+  t.notThrows(() => {
+    app.start();
+  });
 });
 
 test('.applyModule()', t => {
@@ -21,3 +31,5 @@ test('.module()', t => {
       .module(new WHS.app.CameraModule());
   });
 });
+
+test.todo('.applyBridge()');

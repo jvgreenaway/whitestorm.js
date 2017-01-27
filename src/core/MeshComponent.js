@@ -1,18 +1,12 @@
+import {Mesh} from 'three';
 import {Component} from './Component';
 
-import {NativeArguments} from './prototype/NativeArguments';
+import {attributes, copy, mirror} from './prototype/attributes';
 import {CompositionError} from './errors';
 
-@NativeArguments(
-  // Three.js Instances.
-  ['position', {copy: true}],
-  ['rotation', {copy: true}],
-  ['quaternion', {copy: true}],
-  ['scale', {copy: true}],
-
-  // Get properties.
-  'material',
-  'geometry'
+@attributes(
+  copy('position', 'rotation', 'quaternion', 'scale'),
+  mirror('material', 'geometry')
 )
 class MeshComponent extends Component {
   static defaults = {
@@ -38,6 +32,25 @@ class MeshComponent extends Component {
     scale: ['x', 'y', 'z']
   };
 
+  // CUSTOM GEOMETRY HANDLING
+
+  static custom(geom, constructor = Mesh) {
+    return class extends MeshComponent {
+      build(params = this.params) {
+        const {geometry, material} = this.applyBridge({
+          geometry: geom,
+          material: params.material
+        });
+
+        return this.applyBridge({mesh: new constructor(geometry, material)}).mesh;
+      }
+    };
+  }
+
+  static create(geom, params, constructor) {
+    return new (WHS.MeshComponent.custom(geom, constructor))(params);
+  }
+
   constructor(params, defaults = MeshComponent.defaults, instructions = MeshComponent.instructions) {
     super(params, defaults, instructions);
 
@@ -61,6 +74,8 @@ class MeshComponent extends Component {
       this.wrap();
     }
   }
+
+  // BUILDING & WRAPPING
 
   build() {
     throw new CompositionError(
@@ -89,51 +104,14 @@ class MeshComponent extends Component {
     });
   }
 
-  g_(params = {}) {
-    if (this.buildGeometry) {
-      this.native.geometry = this.buildGeometry(
-        this.updateParams({geometry: params})
-      );
-    }
-  }
-
-  add(object) {
-    object.parent = this;
-
-    return new Promise((resolve, reject) => {
-      this.defer(() => {
-        const {native} = object;
-        if (!native) reject();
-
-        const addPromise = this.applyBridge({onAdd: object}).onAdd;
-
-        const resolver = () => {
-          this.native.add(native);
-          this.children.push(object);
-
-          resolve(object);
-        };
-
-        if (addPromise instanceof Promise) addPromise.then(resolver);
-        else resolver();
-      });
-    });
-  }
+  // COPYING & CLONING
 
   copy(source) {
-    if (source.native) {
-      this.native = source.native.clone();
-      this.params = {...source.params};
-      this.modules = source.modules.slice(0);
-
+    return super.copy(source, () => {
       this.position.copy(source.position);
       this.rotation.copy(source.rotation);
       this.quaternion.copy(source.quaternion);
-    } else this.params = source.params;
-
-    this.applyBridge({onCopy: source});
-
-    return this;
+    });
   }
 
   clone(geometry, material) {
@@ -143,10 +121,6 @@ class MeshComponent extends Component {
     if (material) dest.material = dest.material.clone();
 
     return dest;
-  }
-
-  addTo(object) {
-    return object.add(this);
   }
 }
 

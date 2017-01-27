@@ -11,10 +11,11 @@ export class ElementModule {
   }
 
   manager(manager) {
-    manager.addDependency('element', this.element, {alias: '$element'});
+    manager.add('element', this.element, {alias: '$element'});
+    manager.add('container', this.params.container, {alias: '$container'});
   }
 
-  integrate(params, self) {
-    params.container.appendChild(self.element);
+  integrate(self) {
+    self.params.container.appendChild(self.element);
   }
 }

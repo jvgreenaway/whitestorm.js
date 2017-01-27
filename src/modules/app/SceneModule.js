@@ -8,10 +8,10 @@ export class SceneModule {
   }
 
   manager(manager) {
-    manager.addDependency('scene', this.scene, {alias: '$scene'});
+    manager.add('scene', this.scene, {alias: '$scene'});
   }
 
-  integrate(params, self) {
+  integrate(self) {
     this.children = [];
 
     this.add = function (object) {

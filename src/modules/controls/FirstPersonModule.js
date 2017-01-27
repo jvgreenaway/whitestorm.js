@@ -176,7 +176,7 @@ function FirstPersonControlsSolver(camera, mesh, params) {
   });
 }
 
-export class FirstPersonControls {
+export class FirstPersonModule {
   static defaults = {
     block: null,
     speed: 1,
@@ -250,7 +250,7 @@ export class FirstPersonControls {
     manager.get('scene').add(this.controls.getObject());
   }
 
-  integrate(params, self) {
+  integrate(self) {
     const updateProcessor = (c) => {
       self.controls.update(c.getDelta());
     };

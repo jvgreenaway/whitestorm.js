@@ -73,7 +73,7 @@ export class RenderingModule {
       manager.get('camera').native
     );
 
-    manager.onDependencyUpdate({
+    manager.update({
       element: (element) => {
         this.attachToCanvas(element);
       },
@@ -85,10 +85,10 @@ export class RenderingModule {
       }
     });
 
-    manager.addDependency('renderer', this.renderer, {alias: '$rendering'});
+    manager.add('renderer', this.renderer, {alias: '$rendering'});
   }
 
-  integrate(params, self) {
+  integrate(self) {
     self.renderLoop.start(this);
   }
 }

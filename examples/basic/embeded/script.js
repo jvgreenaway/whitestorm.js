@@ -1,6 +1,7 @@
 import * as UTILS from '../../globals';
 
 const resizer = new WHS.app.ResizeModule();
+const mouse = new WHS.app.VirtualMouseModule();
 
 const world = new WHS.App([
   new WHS.app.ElementModule({
@@ -26,8 +27,9 @@ const world = new WHS.App([
   new PHYSICS.WorldModule({
     ammo: process.ammoPath
   }),
-  new WHS.OrbitControlsModule(),
-  resizer
+  new WHS.controls.OrbitModule(),
+  resizer,
+  mouse
 ]);
 
 const sphere = new WHS.Sphere({ // Create sphere component.
@@ -51,8 +53,6 @@ const sphere = new WHS.Sphere({ // Create sphere component.
 });
 
 sphere.addTo(world);
-
-const mouse = new WHS.VirtualMouse(world);
 mouse.track(sphere);
 
 sphere.on('mouseover', () => {
@@ -83,6 +83,8 @@ world.start(); // Start animations and physics simulation.
 const sizer = document.getElementById('sizer');
 const embed = document.getElementById('embed');
 let resize = false;
+
+resizer.trigger();
 
 sizer.addEventListener('mousedown', () => {
   resize = true;

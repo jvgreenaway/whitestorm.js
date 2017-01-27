@@ -1,14 +1,10 @@
 import {Component} from './Component';
 
-import {NativeArguments} from './prototype/NativeArguments';
+import {attributes, copy} from './prototype/attributes';
 import {CompositionError} from './errors';
 
-@NativeArguments(
-  // Three.js Instances.
-  ['position', {copy: true}],
-  ['rotation', {copy: true}],
-  ['quaternion', {copy: true}],
-  ['target', {copy: true}]
+@attributes(
+  copy('position', 'rotation', 'quaternion', 'target')
 )
 class CameraComponent extends Component {
   static defaults = {
@@ -50,6 +46,8 @@ class CameraComponent extends Component {
     }
   }
 
+  // BUILDING & WRAPPING
+
   build() {
     throw new CompositionError(
       'CameraComponent',
@@ -69,28 +67,20 @@ class CameraComponent extends Component {
     });
   }
 
-  copy(source) {
-    if (source.native) {
-      this.native = source.native.clone();
-      this.params = {...source.params};
-      this.modules = source.modules.slice(0);
+  // COPYING & CLONING
 
+  copy(source) {
+    return super.copy(source, () => {
       if (this.target) this.target.copy(source.target());
 
       this.position.copy(source.position);
       this.rotation.copy(source.rotation);
       this.quaternion.copy(source.quaternion);
-    } else this.params = source.params;
-
-    return this;
+    });
   }
 
   clone() {
     return new this.constructor({build: false}).copy(this);
-  }
-
-  addTo(object) {
-    return object.add(this);
   }
 }
 

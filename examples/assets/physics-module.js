@@ -1863,7 +1863,10 @@ var BoxModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(BoxModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'box',
         mass: params.mass,
@@ -1938,7 +1941,10 @@ var CapsuleModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(CapsuleModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'capsule',
         radius: Math.max(params.width / 2, params.depth / 2),
@@ -2071,7 +2077,10 @@ var ClothModule = function () {
     }
   }, {
     key: 'integrate',
-    value: function integrate(params, self) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'softClothMesh',
         mass: params.mass,
@@ -2142,7 +2151,10 @@ var CompoundModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(CompoundModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'compound',
         mass: params.mass,
@@ -2267,7 +2279,10 @@ var ConcaveModule = function () {
     }
   }, {
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'concave',
         mass: params.mass,
@@ -2346,7 +2361,10 @@ var ConvexModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(ConvexModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'convex',
         mass: params.mass,
@@ -2419,7 +2437,10 @@ var CylinderModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(CylinderModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'cylinder',
         width: params.width,
@@ -2526,7 +2547,10 @@ var HeightfieldModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(HeightfieldModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'heightfield',
         friction: params.friction,
@@ -2600,7 +2624,10 @@ var PlaneModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(PlaneModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'plane',
         touches: [],
@@ -2711,7 +2738,10 @@ var SoftbodyModule = function () {
     }
   }, {
     key: 'integrate',
-    value: function integrate(params, self) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'softTrimesh',
         mass: params.mass,
@@ -2793,7 +2823,10 @@ var SphereModule = function () {
 
   __WEBPACK_IMPORTED_MODULE_1_babel_runtime_helpers_createClass___default()(SphereModule, [{
     key: 'integrate',
-    value: function integrate(params) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       this._physijs = {
         type: 'sphere',
         touches: [],
@@ -3387,7 +3420,7 @@ var WorldModule = function (_Eventable) {
       var _physijs = object._physijs || object.component._physijs;
 
       if (_physijs) {
-        component.manager.addDependency('module:world', this);
+        component.manager.add('module:world', this);
         _physijs.id = this.getObjectId();
 
         if (object instanceof __WEBPACK_IMPORTED_MODULE_7__vehicle_vehicle__["a" /* Vehicle */]) {
@@ -3451,7 +3484,7 @@ var WorldModule = function (_Eventable) {
         // Mesh.prototype.remove.call(this, object);
 
         if (object._physijs) {
-          component.manager.removeDependency('module:world');
+          component.manager.remove('module:world');
           this._objects[object._physijs.id] = null;
           this.execute('removeObject', { id: object._physijs.id });
         }
@@ -3483,11 +3516,14 @@ var WorldModule = function (_Eventable) {
   }, {
     key: 'manager',
     value: function manager(_manager) {
-      _manager.addDependency('physicsWorker', this._worker);
+      _manager.add('physicsWorker', this._worker);
     }
   }, {
     key: 'integrate',
-    value: function integrate(params, self) {
+    value: function integrate(self) {
+    const params = self.params;
+
+
       var _this3 = this;
 
       // ...
