@@ -5,12 +5,11 @@
   "main": "build/whitestorm.js",
   "module": "src/index.js",
   "scripts": {
-    "postversion": "gulp build --prod && git add . && git commit -m 'Build'",
-    "test": "ava --verbose --serial",
-    "start": "npm run dev",
-    "build": "gulp build",
-    "deploy": "surge --project ./ --domain whs-dev.surge.sh",
-    "dev": "gulp dev --devPhysics 8001"
+    "postversion": "gulp build --prod & git add . & git commit -m 'Build'",
+    "test": "xo ./src/**/*.js && ava --verbose --serial",
+    "start": "webpack-dashboard -t WhitestormJS -- gulp dev --devPhysics 8001",
+    "build": "gulp build & gulp examples:build",
+    "deploy": "surge --project ./ --domain whs-dev.surge.sh"
   },
   "repository": "WhitestormJS/whitestorm.js",
   "keywords": [
@@ -29,6 +28,7 @@
   "license": "MIT",
   "homepage": "https://github.com/WhitestormJS/whitestorm.js#readme",
   "dependencies": {
+    "lodash-es": "^4.17.4",
     "minivents": "^2.0.2",
     "three": "^0.84.0"
   },
@@ -36,6 +36,7 @@
     "ava": "^0.17.0",
     "babel": "^6.5.2",
     "babel-core": "^6.22.1",
+    "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.10",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-class-properties": "^6.22.0",
@@ -56,9 +57,7 @@
     "gulp-benchmark": "^1.1.1",
     "gulp-browser-basedir": "^1.0.1",
     "gulp-browserify": "^0.5.1",
-    "gulp-cached": "^1.1.1",
     "gulp-cli": "^1.2.2",
-    "gulp-xo": "^0.14.0",
     "happypack": "^3.0.2",
     "karma": "^1.4.0",
     "mocha": "^3.2.0",
@@ -69,13 +68,21 @@
     "three": "^0.84.0",
     "uglify-loader": "^1.4.0",
     "webpack": "^2.1.0-beta.27",
+    "webpack-dashboard": "^0.3.0",
     "webpack-dev-middleware": "^1.9.0",
     "xo": "^0.17.1",
     "yargs": "^6.6.0"
   },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    }
+  },
   "xo": {
     "space": 2,
     "esnext": true,
+    "parser": "babel-eslint",
     "envs": [
       "node",
       "browser",
@@ -109,7 +116,10 @@
       ],
       "babel/arrow-parens": 0,
       "xo/filename-case": 0,
-      "no-warning-comments": 0
+      "no-warning-comments": 0,
+      "unicorn/filename-case": 0,
+      "import/no-unassigned-import": 0,
+      "import/prefer-default-export": 0
     }
   }
 }

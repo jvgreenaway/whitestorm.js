@@ -1,16 +1,30 @@
-import * as UTILS from '../../globals';
+const mouse = new WHS.app.VirtualMouseModule();
 
-const world = new (PHYSICS.$world(WHS.World))({
-  ...UTILS.$world,
+const world = new WHS.App([
+  new WHS.app.ElementModule(),
+  new WHS.app.SceneModule(),
+  new WHS.app.CameraModule({
+    position: new THREE.Vector3(0, 15, 60),
+    far: 10000
+  }),
+  new WHS.app.RenderingModule({
+    bgColor: 0x162129,
 
-  physics: {
-    ammo: process.ammoPath
-  },
-
-  softbody: true,
-
-  gravity: [0, -10, 0]
-});
+    renderer: {
+      antialias: true,
+      shadowmap: {
+        type: THREE.PCFSoftShadowMap
+      }
+    }
+  }),
+  new PHYSICS.WorldModule({
+    ammo: process.ammoPath,
+    gravity: new THREE.Vector3(0, -10, 0),
+    softbody: true
+  }),
+  new WHS.app.ResizeModule(),
+  mouse
+]);
 
 const tubeMaterial = new THREE.MeshStandardMaterial({
   color: 0xffffff,
@@ -26,7 +40,12 @@ const toptube = new WHS.Tube({
     radius: 1
   },
 
-  mass: 0,
+  modules: [
+    new PHYSICS.ConvexModule({
+      mass: 0
+    })
+  ],
+
   material: tubeMaterial
 });
 
@@ -39,7 +58,12 @@ new WHS.Tube({
     radius: 1
   },
 
-  mass: 0,
+  modules: [
+    new PHYSICS.ConvexModule({
+      mass: 0
+    })
+  ],
+
   material: tubeMaterial
 }).addTo(world);
 
@@ -50,7 +74,12 @@ new WHS.Tube({
     radius: 1
   },
 
-  mass: 0,
+  modules: [
+    new PHYSICS.ConvexModule({
+      mass: 0
+    })
+  ],
+
   material: tubeMaterial
 }).addTo(world);
 
@@ -61,12 +90,15 @@ const sphere = new WHS.Sphere({
     heightSegments: 32
   },
 
-  mass: 3,
+  modules: [
+    new PHYSICS.SphereModule({
+      mass: 3
+    })
+  ],
 
-  material: {
-    color: 0xffffff,
-    kind: 'basic'
-  },
+  material: new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  }),
 
   position: {
     x: -20,
@@ -76,6 +108,7 @@ const sphere = new WHS.Sphere({
 });
 
 const sphereHandler = [];
+const blackBasic = new THREE.MeshBasicMaterial({color: 0x000000});
 
 for (let i = 0; i < 5; i++) {
   const sc = sphere.clone();
@@ -93,19 +126,20 @@ for (let i = 0; i < 5; i++) {
       curve: new THREE.LineCurve3(v1, v2)
     },
 
-    physics: {
-      piterations: 10,
-      viterations: 10
-    },
+    material: blackBasic,
 
-    mass: 1,
-
-    softbody: true
+    modules: [
+      new PHYSICS.RopeModule({
+        piterations: 10,
+        viterations: 10,
+        mass: 1
+      })
+    ]
   });
 
   rope.addTo(world).then(() => {
-    rope.appendAnchor(world, toptube, 50, 1);
-    rope.appendAnchor(world, sc, 0, 1);
+    rope.appendAnchor(toptube, 50, 1);
+    rope.appendAnchor(sc, 0, 1);
   });
 }
 
@@ -116,12 +150,15 @@ const sphereStart = new WHS.Sphere({
     heightSegments: 32
   },
 
-  mass: 3,
+  modules: [
+    new PHYSICS.SphereModule({
+      mass: 3
+    })
+  ],
 
-  material: {
-    color: 0xffffff,
-    kind: 'basic'
-  },
+  material: new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  }),
 
   position: {
     x: 25,
@@ -138,20 +175,21 @@ const rope1 = new WHS.Line({
     curve: new THREE.LineCurve3(sphereStart.position.clone(), new THREE.Vector3(10, 30, 0))
   },
 
-  physics: {
-    piterations: 10,
-    viterations: 10
-  },
+  material: blackBasic,
 
-  mass: 1,
-
-  softbody: true
+  modules: [
+    new PHYSICS.RopeModule({
+      piterations: 10,
+      viterations: 10,
+      mass: 1
+    })
+  ]
 });
 
-rope1.addTo(world);
-
-rope1.appendAnchor(world, toptube, 50, 1);
-rope1.appendAnchor(world, sphereStart, 0, 1);
+rope1.addTo(world).then(() => {
+  rope1.appendAnchor(toptube, 50, 1);
+  rope1.appendAnchor(sphereStart, 0, 1);
+});
 
 new WHS.Plane({
   geometry: {
@@ -159,14 +197,17 @@ new WHS.Plane({
     height: 250
   },
 
-  mass: 0,
+  modules: [
+    new PHYSICS.PlaneModule({
+      mass: 0
+    })
+  ],
 
-  material: {
+  material: new THREE.MeshBasicMaterial({
     color: 0xff0000,
-    kind: 'basic',
     transparent: true,
     opacity: 0
-  },
+  }),
 
   position: {
     x: 0,
@@ -201,7 +242,6 @@ new WHS.AmbientLight({
 world.start();
 
 // Check mouse.
-const mouse = new WHS.VirtualMouse(world);
 
 for (let i = 0, max = sphereHandler.length; i < max; i++) {
   const nows = sphereHandler[i];

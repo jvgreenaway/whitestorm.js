@@ -1,5 +1,5 @@
 import test from 'ava';
-import * as WHS from '../../build/whitestorm.js';
+import * as WHS from '../../build/whitestorm';
 
 /*
  * Ignored methods:
@@ -31,5 +31,3 @@ test('.module()', t => {
       .module(new WHS.app.CameraModule());
   });
 });
-
-test.todo('.applyBridge()');
