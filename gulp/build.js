@@ -1,5 +1,7 @@
+#!/usr/bin/env node
 import gulp from 'gulp';
 import del from 'del';
+import {argv} from 'yargs';
 
 import {FrameworkCompilerInstance} from './compilers';
 import {framework} from './config';
@@ -12,13 +14,23 @@ const logEnd = name => log('green', `WEBPACK BUILD ['${name}' compiler status]: 
 gulp.task('build', ['build:clean'], () => {
   const compilers = new FrameworkCompilerInstance();
 
-  logStart('main');
-  compilers('main').run(() => logEnd('main'));
+  const instances = {
+    main: new Promise(resolve => {
+      logStart('main');
+      compilers('main').run(() => resolve(logEnd('main')));
+    }),
+    compact: new Promise(resolve => {
+      if (argv['main-only']) resolve();
+      logStart('compact');
+      compilers('compact').run(() => resolve(logEnd('compact')));
+    })
+  };
 
-  // TODO: Make compilers run synchronously
+  Promise.all([instances.main, instances.compact]).then(() => process.exit(0), () => process.exit(1));
+});
 
-  logStart('compact');
-  compilers('compact').run(() => logEnd('compact'));
+gulp.task('travis-build', ['build'], () => {
+  if (process.env.TRAVIS) process.exit(0);
 });
 
 gulp.task('build:clean', callback => {

@@ -1,5 +1,5 @@
 
-<a href="https://whsjs.io/"><img width="100%" src="http://i.imgur.com/Dr9m7Xj.jpg"></a>
+<a href="https://discord.gg/frNetGE"><img width="100%" src="http://i.imgur.com/Dr9m7Xj.jpg"></a>
 
 [![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg?style=flat-square)](https://github.com/sindresorhus/xo)
 [![NPM Version](https://img.shields.io/npm/v/whs.svg?style=flat-square)](https://www.npmjs.com/package/whs)
@@ -14,39 +14,97 @@
 You can find lots of examples at [showcases](https://whs-dev.surge.sh/examples/).
 
 <a href="https://whs-dev.surge.sh/examples/#basic/helloworld">
-  <img alt="basic/helloworld" target="_blank" src="http://i.imgur.com/IRq5Hp4.gif" width="33%" />
+  <img alt="basic/helloworld" target="_blank" src="http://i.imgur.com/IRq5Hp4.gif" width="32%" />
 </a>
 <a href="https://whs-dev.surge.sh/examples/#basic/model">
-  <img alt="basic/model" target="_blank" src="http://i.imgur.com/RmTjjiA.gif" width="33%" />
+  <img alt="basic/model" target="_blank" src="http://i.imgur.com/RmTjjiA.gif" width="32%" />
 </a>
 <a href="https://whs-dev.surge.sh/examples/#softbody/cloth3">
-  <img alt="softbody/cloth3" target="_blank" src="http://i.imgur.com/BgHdX56.gif" width="33%" />
+  <img alt="softbody/cloth3" target="_blank" src="http://i.imgur.com/BgHdX56.gif" width="32%" />
 </a>
 <a href="https://whs-dev.surge.sh/examples/#post-processing/basic-glitch">
-  <img alt="postprocessing/basic-glitch" target="_blank" src="http://i.imgur.com/ASUN7tR.gif" width="33%" />
+  <img alt="postprocessing/basic-glitch" target="_blank" src="http://i.imgur.com/ASUN7tR.gif" width="32%" />
 </a>
 <a href="https://whs-dev.surge.sh/examples/#softbody/ropes">
-  <img alt="softbody/ropes" target="_blank" src="http://i.imgur.com/wRFKfTM.gif" width="33%" />
+  <img alt="softbody/ropes" target="_blank" src="http://i.imgur.com/wRFKfTM.gif" width="32%" />
 </a>
 <a href="https://whs-dev.surge.sh/examples/#design/saturn">
-  <img alt="design/saturn" target="_blank" src="http://i.imgur.com/JZ5HryS.gif" width="33%" />
+  <img alt="design/saturn" target="_blank" src="http://i.imgur.com/JZ5HryS.gif" width="32%" />
 </a>
 
 ### Why?
 * 🤔 Because making of even **a basic Three.js application requires at least ~20 lines of code** (see [this tutorial](https://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene))
-  - **Native three.js:** you will need to setup: _scene, renderer, camera_, make an `animate()` function before making the actual app.
-  - **Whitestorm.js:** all those values are filled with defaults, you just need to define your own values **only if they differs from defaults**.
+  - **Three.js:** you will need to setup: _scene, renderer, camera_, make an `animate()` function before making the actual app.
+  - **Whitestorm.js:** There are modules that helps you easily setup them:
+  
+    ```javascript
+    const app = new WHS.App([
+      new WHS.app.ElementModule(), // attach to DOM
+      new WHS.app.SceneModule(), // creates THREE.Scene instance
+      new WHS.app.CameraModule(), // creates PerspectiveCamera instance
+      new WHS.app.RenderingModule() // creates WebGLRenderer instance
+    ]);
+
+    app.start(); // run animation
+    ```
 
 * 💣 **Adding physics is hard.**
-  - **Other frameworks:** To make your app run with physics you need to make a second world with same 3d objects and apply their transform (position & rotation) to your rendered scene objects (`THREE.Scene` for example) in every frame.
-  - **Whitestorm.js:** All this can be done **automatically**.
+  - **Three.js:** To make your app run with physics you need to make a second world with same 3d objects and apply their transform (position & rotation) to your rendered scene objects (`THREE.Scene` for example) in every frame.
+  - **Whitestorm.js:** Can be done with modules in a few lines:
+  
+    ```javascript
+    const app = new WHS.App([
+      // Other modules...
+      new PHYSICS.WorldModule()
+    ]);
+
+    const sphere = new WHS.Sphere({
+      geometry: {
+        radius: 3
+      },
+
+      modules: [
+        new PHYSICS.SphereModule({
+          mass: 10
+        })
+      ],
+
+      material: new THREE.MeshBasicMaterial({color: 0xff0000}) // red material
+    });
+
+    app.start(); // run animation
+    ```
+    
+    Use [physics-module-ammonext](https://github.com/WhitestormJS/physics-module-ammonext) as your physics module.
 
 * 🔌 **Components & plugins**
-  - **Other:** `Unknown yet`.
-  - **Whitestorm.js:** It provides ability to create your own components using framework's tools. (**You can add a component** like `WHS.Box` or `WHS.PointLight` but for creating a _terrain (`WHS.Terrain`) / aquarium (`WHS.Aquarium`) / car (`WHS.Car`) / any other_ with specific merhods and scripts.
+  - **Three.js:** You can create meshes with geometry and material.
+  - **Whitestorm.js:** You can create components with advanced custom functionality.
+    
+    ```javascript
+    export class BasicComponent extends WHS.MeshComponent {
+      build() {
+        return new Mesh(
+          new IcosahedronGeometry(3, 5),
+          new MeshBasicMaterial({color: 0xffffff})
+        )
+      }
+
+      randomize() { // Additional function
+        this.position.set(Math.random() * 10, Math.random() * 10, Math.random() * 10);
+      }
+    }
+    ```
+  
   - See [Component system in interactive 3D of web](https://medium.com/@_alex_buzin/component-system-in-interactive-3d-of-web-18348eecf270#.lynivy4ut) article for more info.
 
 -----
+
+## Download
+
+<a href="https://raw.githubusercontent.com/WhitestormJS/whitestorm.js/beta/build/whitestorm.js"><img src="http://i.imgur.com/qKJEb5t.png" height="40" /></a>
+
+<a href="https://raw.githubusercontent.com/WhitestormJS/whitestorm.js/beta/build/whitestorm.compact.js"><img src="http://i.imgur.com/RY9kDFD.png" height="40" /></a>
 
 
 ## Features
@@ -54,13 +112,10 @@ You can find lots of examples at [showcases](https://whs-dev.surge.sh/examples/)
 * 💎 **Simple in usage**
 * Minimize 3D scene prototyping
 * 🔌  **Component based scene graph**
-* 💣 Integrated **high performance physics** with `Worker` (Multithreading)
+* 💣 Simple integration of any **high performance physics** even with `Worker` (Multithreading)
 * Automatization of rendering
-* Enhanced **softbodies**
 * 🆕 **ES2015+ based**
-* Extension system (plugins)
-* Dynamic geometry update
-* [asm.js](http://asmjs.org/) acceleration
+* Extension system (modules)
 * [Webpack](https://whsjs.io/#/api/webpack) friendly
 * ✔️ **Integrated [Three.js](https://threejs.org/) rendering engine**
 * Work with Whitestorm.js and Three.js at the same time
@@ -69,69 +124,46 @@ You can find lots of examples at [showcases](https://whs-dev.surge.sh/examples/)
 ### NODE
 
 ```bash
-$ npm install --save whs
+$ npm install --save whs@beta
 ```
 
 ### WEBPACK
 
-See [WhitestormJS/test-whitestorm-webpack](https://github.com/WhitestormJS/test-whitestorm-webpack) for more details.
+Use [whitestorm-app-boilerplate](https://github.com/WhitestormJS/whitestorm-app-boilerplate)
 
 ## Documentation
 
-Full documentation of guides and APIs are located at [here](http://whsjs.io/).
+Documentation for beta is not yet released. [Contact developers in discord chat](https://discord.gg/frNetGE)
 
-## Usage
+## Basic application
 
 ```javascript
-const world = new WHS.World({
-    stats: "fps", // fps, ms, mb or false if not need.
-    autoresize: "window",
-
-    gravity: [0, -100, 0], // Physic gravity.
-
-    camera: {
-      position: {
-        z: 50 // Move camera.
-      }
-    }
-});
+const app = new WHS.App([
+  new WHS.app.ElementModule(), // attach to DOM
+  new WHS.app.SceneModule(), // creates THREE.Scene instance
+  new WHS.app.CameraModule({
+    position: new THREE.Vector3(0, 0, -10)
+  }), // creates PerspectiveCamera instance
+  new WHS.app.RenderingModule(), // creates WebGLRenderer instance
+  new WHS.controls.OrbitModule() // orbit controls
+]);
 
 const sphere = new WHS.Sphere({ // Create sphere comonent.
   geometry: {
     radius: 3
   },
 
-  mass: 10, // Mass of physics object.
-
-  material: {
+  material: new THREE.MeshBasicMaterial({
     color: 0xffffff, // White color.
-    kind: 'basic' // THREE.MeshBasicMaterial
-  },
+  }),
 
-  position: [0, 10, 0]
+  position: new THREE.Vector3(0, 1, 0) // x: 0, y: 1, z: 0
 });
 
-sphere.addTo(world);
-console.log(sphere.native); // Returns THREE.Mesh of this object.
+sphere.addTo(app);
+console.log(sphere.native); // Logs THREE.Mesh of this component
 
-world.start(); // Start animations and physics simulation.
+app.start(); // run animation
 ```
-
-## Playground!
-
-[![playground](http://i.imgur.com/6EdMjm1.gif)](http://whsjs.io/playground/)
-
-
-## Contributors
-
-[![Author](http://wsbadge.herokuapp.com/badge/Author-Alexander%20Buzin-orange.svg?style=flat-square)](https://github.com/sasha240100)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-jackdalton-green.svg?style=flat-square)](https://github.com/jackdalton)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-Noctisdark-green.svg?style=flat-square)](https://github.com/noctisdark)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-bdirl-green.svg?style=flat-square)](https://github.com/bdirl)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-preco21-green.svg?style=flat-square)](https://github.com/preco21)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-yeliex-green.svg?style=flat-square)](https://github.com/yeliex)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-t4r0-green.svg?style=flat-square)](https://github.com/t4r0)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-electron0zero-green.svg?style=flat-square)](https://github.com/electron0zero)
-[![Contributor](http://wsbadge.herokuapp.com/badge/Contributor-typedef42-green.svg?style=flat-square)](https://github.com/typedef42)
 
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](https://alexbuzin.me/)
